@@ -1,0 +1,22 @@
+{
+  "name": "video_upload_client",
+  "version": "1.0.0",
+  "description": "this app is a client that will upload videos",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --watch src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/marcoscoutinhodev/video_upload"
+  },
+  "author": "Marcos Vinicius Coutinho",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.46.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.28.0"
+  }
+}

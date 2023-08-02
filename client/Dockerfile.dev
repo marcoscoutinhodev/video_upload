@@ -1,0 +1,12 @@
+FROM node:lts-bullseye
+
+RUN apt update && \
+	apt full-upgrade -y
+
+RUN npm install --location=global npm@latest
+
+WORKDIR /home/node/video_upload_client
+
+RUN git config --global --add safe.directory /home/node/video_upload_client
+
+CMD ["tail", "-f", "/dev/null"]
