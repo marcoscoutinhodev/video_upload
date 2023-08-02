@@ -11,5 +11,9 @@
     "sourceType": "module"
   },
   "plugins": [],
-  "rules": {}
+  "rules": {
+    "lines-between-class-members": "off",
+    "no-underscore-dangle": "off",
+    "import/extensions": "off"
+  }
 }
