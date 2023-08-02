@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  video-upload-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: video_upload_server
+    volumes:
+      - ./:/home/video_upload_server
+    ports:
+      - 4000:4000
+
+networks: 
+  default: 
+    name: video_upload_network
+    external: true
