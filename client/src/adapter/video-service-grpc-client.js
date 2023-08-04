@@ -13,9 +13,9 @@ const packageDefinition = protoLoader.loadSync(protoPath);
 const grpcObject = loadPackageDefinition(packageDefinition);
 const { pb } = grpcObject;
 
-const uploadVideoClient = new pb.VideoService(
-  process.env.GRPC_SERVER_ADDRESS,
+const videoServiceClient = new pb.VideoService(
+  'video-upload-server:4000',
   credentials.createInsecure(),
 );
 
-export default uploadVideoClient;
+export default videoServiceClient;

@@ -1,14 +1,16 @@
 import { createServer } from 'node:http';
-import 'dotenv/config';
 
 import UploadVideoController from './controller/upload-video-controller.js';
+import StreamVideoController from './controller/stream-video-controller.js';
 import videoFormatValidationService from './adapter/video-format-validation-service-adapter.js';
-import uploadVideoClient from './adapter/upload-video-service-adapter.js';
+import videoServiceClient from './adapter/video-service-grpc-client.js';
 
 const uploadVideoController = new UploadVideoController({
   videoFormatValidationService,
-  uploadVideoClient,
+  videoServiceClient,
 });
+
+const streamVideoController = new StreamVideoController({ videoServiceClient });
 
 createServer((request, response) => {
   const headers = {
@@ -21,7 +23,7 @@ createServer((request, response) => {
       uploadVideoController.handle(request, response, headers);
       break;
     case 'GET':
-
+      streamVideoController.handle(request, response, headers);
       break;
     default:
       response.writeHead(404, headers);
@@ -29,4 +31,4 @@ createServer((request, response) => {
       response.end();
   }
   // eslint-disable-next-line no-console
-}).listen(process.env.SERVER_PORT, () => console.log('server is running...\n'));
+}).listen('3000', () => console.log('server is running...\n'));

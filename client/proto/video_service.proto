@@ -5,10 +5,19 @@ message UploadVideoRequest {
   bytes buff = 1;
 }
 
+message StreamVideoRequest {
+  string id = 1;
+}
+
 message VideoData {
   string id = 1;
 }
 
+message VideoBuffers {
+  bytes buff = 1;
+}
+
 service VideoService {
   rpc UploadVideoStream(stream UploadVideoRequest) returns (VideoData) {}
+  rpc StreamVideo(StreamVideoRequest) returns (stream VideoBuffers) {}
 }

@@ -4,4 +4,5 @@ then
 fi
 
 docker-compose -f docker-compose-dev.yml up -d && \
+  docker exec -it video_upload_client npm install && \
   docker exec -it video_upload_client bash

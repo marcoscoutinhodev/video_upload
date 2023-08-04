@@ -1,13 +1,25 @@
 export default class UploadVideoController {
   #videoFormatValidationService;
-  #uploadVideoClient;
+  #videoServiceClient;
 
-  constructor({ videoFormatValidationService, uploadVideoClient }) {
+  constructor({ videoFormatValidationService, videoServiceClient }) {
     this.#videoFormatValidationService = videoFormatValidationService;
-    this.#uploadVideoClient = uploadVideoClient;
+    this.#videoServiceClient = videoServiceClient;
   }
 
   handle(request, response, headers) {
+    const contentLength = parseInt(request.headers['content-length'], 10);
+    if (contentLength > 500000000) { // 500 MB
+      this.#writeResponse(response, headers, {
+        statusCode: 400,
+        data: {
+          success: false,
+          error: 'file size must be up to 500MB',
+        },
+      });
+      return;
+    }
+
     let videoFormatHasBeenValidated = false;
     let stream;
 
@@ -41,7 +53,7 @@ export default class UploadVideoController {
 
         videoFormatHasBeenValidated = true;
 
-        stream = this.#uploadVideoClient.UploadVideoStream((err, res) => {
+        stream = this.#videoServiceClient.UploadVideoStream((err, res) => {
           if (err) {
             this.#writeResponse(response, headers, {
               statusCode: 500,
