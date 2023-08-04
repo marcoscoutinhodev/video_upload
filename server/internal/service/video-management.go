@@ -22,6 +22,7 @@ func NewVideoManagement() *VideoManagement {
 
 func (v *VideoManagement) UploadVideoStream(stream pb.VideoService_UploadVideoStreamServer) error {
 	videoId := fmt.Sprint(time.Now().Unix())
+
 	videoPath, err := filepath.Abs(fmt.Sprintf("./videos/%s.mp4", videoId))
 	if err != nil {
 		return err
@@ -58,6 +59,37 @@ func (v *VideoManagement) UploadVideoStream(stream pb.VideoService_UploadVideoSt
 
 		_, err = file.Write(data.GetBuff())
 		if err != nil {
+			return err
+		}
+	}
+}
+
+func (v *VideoManagement) StreamVideo(r *pb.StreamVideoRequest, stream pb.VideoService_StreamVideoServer) error {
+	videoPath, err := filepath.Abs(fmt.Sprintf("./videos/%s.mp4", r.GetId()))
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Open(videoPath)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	buffer := make([]byte, 4194) // 4KB
+
+	for {
+		bytesRead, err := file.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+
+			return err
+		}
+
+		if err := stream.Send(&pb.VideoBuffers{Buff: buffer[:bytesRead]}); err != nil {
 			return err
 		}
 	}

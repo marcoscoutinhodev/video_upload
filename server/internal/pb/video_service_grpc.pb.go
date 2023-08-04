@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type VideoServiceClient interface {
 	UploadVideoStream(ctx context.Context, opts ...grpc.CallOption) (VideoService_UploadVideoStreamClient, error)
+	StreamVideo(ctx context.Context, in *StreamVideoRequest, opts ...grpc.CallOption) (VideoService_StreamVideoClient, error)
 }
 
 type videoServiceClient struct {
@@ -67,11 +68,44 @@ func (x *videoServiceUploadVideoStreamClient) CloseAndRecv() (*VideoData, error)
 	return m, nil
 }
 
+func (c *videoServiceClient) StreamVideo(ctx context.Context, in *StreamVideoRequest, opts ...grpc.CallOption) (VideoService_StreamVideoClient, error) {
+	stream, err := c.cc.NewStream(ctx, &VideoService_ServiceDesc.Streams[1], "/pb.VideoService/StreamVideo", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &videoServiceStreamVideoClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type VideoService_StreamVideoClient interface {
+	Recv() (*VideoBuffers, error)
+	grpc.ClientStream
+}
+
+type videoServiceStreamVideoClient struct {
+	grpc.ClientStream
+}
+
+func (x *videoServiceStreamVideoClient) Recv() (*VideoBuffers, error) {
+	m := new(VideoBuffers)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility
 type VideoServiceServer interface {
 	UploadVideoStream(VideoService_UploadVideoStreamServer) error
+	StreamVideo(*StreamVideoRequest, VideoService_StreamVideoServer) error
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -81,6 +115,9 @@ type UnimplementedVideoServiceServer struct {
 
 func (UnimplementedVideoServiceServer) UploadVideoStream(VideoService_UploadVideoStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method UploadVideoStream not implemented")
+}
+func (UnimplementedVideoServiceServer) StreamVideo(*StreamVideoRequest, VideoService_StreamVideoServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamVideo not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 
@@ -121,6 +158,27 @@ func (x *videoServiceUploadVideoStreamServer) Recv() (*UploadVideoRequest, error
 	return m, nil
 }
 
+func _VideoService_StreamVideo_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamVideoRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(VideoServiceServer).StreamVideo(m, &videoServiceStreamVideoServer{stream})
+}
+
+type VideoService_StreamVideoServer interface {
+	Send(*VideoBuffers) error
+	grpc.ServerStream
+}
+
+type videoServiceStreamVideoServer struct {
+	grpc.ServerStream
+}
+
+func (x *videoServiceStreamVideoServer) Send(m *VideoBuffers) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -133,6 +191,11 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "UploadVideoStream",
 			Handler:       _VideoService_UploadVideoStream_Handler,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "StreamVideo",
+			Handler:       _VideoService_StreamVideo_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "proto/video_service.proto",
